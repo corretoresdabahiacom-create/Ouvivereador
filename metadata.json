@@ -1,0 +1,11 @@
+{
+  "name": "OuviVereador IA",
+  "description": "MVP de Ouvidoria Legislativa Inteligente para Vereadores e Câmaras Municipais, com IA para classificação, SLA de 30 dias monitorado por cores, painel de relatórios com mapa de calor e conformidade LGPD.",
+  "requestFramePermissions": [
+    "geolocation",
+    "camera"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}

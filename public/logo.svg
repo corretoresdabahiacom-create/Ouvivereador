@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <radialGradient id="bgGrad" cx="50%" cy="50%" r="50%" fx="50%" fy="50%">
+      <stop offset="0%" stop-color="#0F2E5D" />
+      <stop offset="100%" stop-color="#071D41" />
+    </radialGradient>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFE082" />
+      <stop offset="50%" stop-color="#FFB300" />
+      <stop offset="100%" stop-color="#FF6F00" />
+    </linearGradient>
+    <filter id="subtleShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000000" flood-opacity="0.35" />
+    </filter>
+  </defs>
+  
+  <!-- Rounded elegant background of the unified municipal identity -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  
+  <!-- Outer border circle or square accent -->
+  <rect x="24" y="24" width="464" height="464" rx="88" fill="none" stroke="url(#goldGrad)" stroke-width="6" stroke-opacity="0.25" />
+  
+  <g filter="url(#subtleShadow)">
+    <!-- Classical Temple Header/Pediment (Triangle) -->
+    <polygon points="256,120 110,195 402,195" fill="url(#goldGrad)" />
+    
+    <!-- Architrave / Beam below pediment -->
+    <rect x="130" y="195" width="252" height="18" rx="2" fill="url(#goldGrad)" />
+    
+    <!-- Metopes / Frieze details -->
+    <rect x="140" y="213" width="232" height="10" fill="#FFE082" opacity="0.8" />
+    
+    <!-- Columns (Classic Pillars of Representative Power) -->
+    <!-- Column 1 -->
+    <rect x="150" y="223" width="24" height="120" rx="3" fill="url(#goldGrad)" />
+    <!-- Column 2 -->
+    <rect x="200" y="223" width="24" height="120" rx="3" fill="url(#goldGrad)" />
+    <!-- Column 3 -->
+    <rect x="250" y="223" width="24" height="120" rx="3" fill="url(#goldGrad)" />
+    <!-- Column 4 -->
+    <rect x="300" y="223" width="24" height="120" rx="3" fill="url(#goldGrad)" />
+    <!-- Column 5 -->
+    <rect x="350" y="223" width="24" height="120" rx="3" fill="url(#goldGrad)" />
+    
+    <!-- Base / Stylobate / Steps -->
+    <rect x="120" y="343" width="272" height="18" rx="2" fill="url(#goldGrad)" />
+    <rect x="100" y="361" width="312" height="18" rx="3" fill="url(#goldGrad)" />
+    <rect x="80" y="379" width="352" height="20" rx="4" fill="url(#goldGrad)" />
+  </g>
+</svg>

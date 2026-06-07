@@ -1,0 +1,191 @@
+{
+  "usuarios": [
+    {
+      "id": "u-admin",
+      "nome": "Administrador Geral",
+      "email": "admin@camara.gov.br",
+      "telefone": "11999999999",
+      "senhaHash": "admin123",
+      "perfil": "Administrador Geral",
+      "criadoEm": "2026-05-01T10:00:00Z",
+      "emailAlternativo": "copia.admin@camara.gov.br"
+    },
+    {
+      "id": "u-ouvidor",
+      "nome": "Dr. Carlos (Ouvidor)",
+      "email": "ouvidoria@camara.gov.br",
+      "telefone": "11988888888",
+      "senhaHash": "ouvidoria123",
+      "perfil": "Ouvidoria de Câmara",
+      "criadoEm": "2026-05-01T11:00:00Z",
+      "emailAlternativo": "copia.ouvidoria@camara.gov.br"
+    },
+    {
+      "id": "u-silva",
+      "nome": "Vereador Silva",
+      "email": "silva@camara.gov.br",
+      "telefone": "11977777777",
+      "senhaHash": "silva123",
+      "perfil": "Vereador Específico",
+      "criadoEm": "2026-05-01T12:00:00Z",
+      "criadoPorAdminId": "u-admin",
+      "emailAlternativo": "copia.silva@camara.gov.br"
+    },
+    {
+      "id": "u-santos",
+      "nome": "Vereadora Marina Santos",
+      "email": "marina@camara.gov.br",
+      "telefone": "11966666666",
+      "senhaHash": "marina123",
+      "perfil": "Vereador Específico",
+      "criadoEm": "2026-05-02T10:30:00Z",
+      "criadoPorAdminId": "u-admin",
+      "emailAlternativo": "copia.marina@camara.gov.br"
+    },
+    {
+      "id": "u-cidadao1",
+      "nome": "Cidadao Exemplo",
+      "email": "cidadao@gmail.com",
+      "telefone": "11955555555",
+      "senhaHash": "cidadao123",
+      "perfil": "Cidadão",
+      "endereco": "Rua das Flores, 123",
+      "bairro": "Centro",
+      "cpf": "123.456.789-00",
+      "criadoEm": "2026-05-10T14:00:00Z"
+    },
+    {
+      "id": "u-vereador-req",
+      "nome": "Vereador Oficial",
+      "email": "vereador@camara.gov.br",
+      "telefone": "11966666666",
+      "senhaHash": "vereador123",
+      "perfil": "Vereador Específico",
+      "emailAlternativo": "copia.vereador@camara.gov.br",
+      "criadoEm": "2026-06-04T16:00:00Z"
+    },
+    {
+      "id": "u-usuario-req",
+      "nome": "Usuário Requerente",
+      "email": "usuario@gmail.com",
+      "telefone": "11933333333",
+      "senhaHash": "usuario123",
+      "perfil": "Cidadão",
+      "endereco": "Rua do Plenário, 10",
+      "bairro": "Centro",
+      "cpf": "111.222.333-44",
+      "criadoEm": "2026-06-04T16:00:00Z"
+    },
+    {
+      "id": "u-procurador-req",
+      "nome": "Procurador Dr. André",
+      "email": "procurador@camara.gov.br",
+      "telefone": "11922222222",
+      "senhaHash": "procurador123",
+      "perfil": "Procurador da Câmara",
+      "emailAlternativo": "copia.procurador@camara.gov.br",
+      "criadoEm": "2026-06-04T16:00:00Z"
+    }
+  ],
+  "secretarias": [
+    {
+      "id": "sec-infra",
+      "nome": "Secretaria de Infraestrutura e Cidades",
+      "email": "infra@municipio.gov.br",
+      "responsavelNome": "Eng. Roberto Dias"
+    },
+    {
+      "id": "sec-servicos",
+      "nome": "Secretaria de Serviços Públicos e Limpeza Urbana",
+      "email": "servicos@municipio.gov.br",
+      "responsavelNome": "Maria Eduarda"
+    },
+    {
+      "id": "sec-saude",
+      "nome": "Secretaria de Saúde",
+      "email": "saude@municipio.gov.br",
+      "responsavelNome": "Dra. Letícia Costa"
+    },
+    {
+      "id": "sec-educacao",
+      "nome": "Secretaria de Educação e Cultura",
+      "email": "educacao@municipio.gov.br",
+      "responsavelNome": "Prof. Armando Rocha"
+    }
+  ],
+  "manifestacoes": [],
+  "logs": [
+    {
+      "id": "log-001",
+      "timestamp": "2026-05-27T11:00:00Z",
+      "usuarioEmail": "admin@camara.gov.br",
+      "usuarioNome": "Administrador Geral",
+      "acao": "Visualizou listagem de auditoria de dados (conformidade LGPD)",
+      "ipAddress": "127.0.0.1"
+    }
+  ],
+  "headerConfig": {
+    "municipioNome": "Câmara Municipal de Rio Preto",
+    "nomePrograma": "Ouvidoria Legislativa Inteligente (Conformidade Completa LGPD)",
+    "logoUrl": "https://images.unsplash.com/photo-1541872703-74c5e44368f9?auto=format&fit=crop&q=80&w=120",
+    "backgroundColor": "#024a30",
+    "textColor": "#ffffff",
+    "welcomeGreeting": "Bem-vindo à Ouvidoria Câmara Municipal Alagoinhas/ BA",
+    "appSubTitle": "Atendimento ao Cidadão • Legislativo Municipal"
+  },
+  "publicidadesTop": [
+    {
+      "id": "top-ad-1",
+      "category": "Transparência Legislativa",
+      "title": "Campanha de Isenção, Regularização Tarifária e Descontos de IPTU 2026",
+      "highlight": "Até 80% de desconto nos juros moratórios de tributos locais.",
+      "details": "A Câmara Municipal aprovou por unanimidade a Lei Complementar 12/2026, regulamentando o novo Refis Municipal. Cidadãos e pequenos empresários com IPTU, ISS e taxas pendentes podem solicitar a quitação presencialmente no balcão de atendimento ou de forma digital via portal de finanças municipal. O prazo final para adesão ao programa estende-se até o final deste semestre com garantias reguladas.",
+      "cta": "Acessar Portal Tributário"
+    },
+    {
+      "id": "top-ad-2",
+      "category": "Participação Popular",
+      "title": "Plano Cicloviário Unificado da Avenida Central e Parque das Nações",
+      "highlight": "Audiência Pública na Câmara Municipal nesta quarta-feira às 19:00.",
+      "details": "Venha opinar sobre o traçado das novas vias municipais dedicadas a ciclistas, pedestres e novos modais de mobilidade limpa de forma auditada e segura. A comissão de urbanismo e mobilidade urbana receberá contribuições presenciais ou por escrito. Haverá transmissão online pelo canal oficial da TV Legislativa.",
+      "cta": "Inscrever-se para Falar"
+    },
+    {
+      "id": "top-ad-3",
+      "category": "Unidade Móvel de Zeladoria",
+      "title": "Ouvidoria no seu Bairro - Próxima sexta-feira no Distrito Industrial",
+      "highlight": "Fale diretamente com os vereadores de plantão e registre demandas de infraestrutura.",
+      "details": "A equipe técnica e a Ouvidoria itinerante estarão aportadas na Praça de Esportes com serviços rápidos de encaminhamento de relatos, consultas de assistências sob LGPD e audiências públicas individuais com representantes. Acompanhe relatórios presenciais.",
+      "cta": "Consultar Cronograma Completo"
+    }
+  ],
+  "publicidadeBottom": {
+    "id": "bottom-ad-1",
+    "category": "Parceria & Apoio Institucional",
+    "title": "Escola do Legislativo: Cursos Gratuitos de Cidadania, Oratória e Políticas Públicas",
+    "subtitle": "O saber técnico ao alcance de todos os cidadãos. Acesse a trilha de aprendizado online gratuita ou assista às aulas magnas na sede da Câmara Municipal.",
+    "cta": "Inscrever-se Grátis"
+  },
+  "cargos": [
+    {
+      "id": "c-1",
+      "nome": "Vereador Titular",
+      "descricao": "Membro eleito do corpo legislativo municipal"
+    },
+    {
+      "id": "c-2",
+      "nome": "Servidor Efetivo",
+      "descricao": "Funcionário aprovado em concurso público municipal"
+    },
+    {
+      "id": "c-3",
+      "nome": "Ouvidor Geral",
+      "descricao": "Responsável master pelo processamento e trâmite dos relatos"
+    },
+    {
+      "id": "c-4",
+      "nome": "Assessor Parlamentar",
+      "descricao": "Gabinete direto de vereabilidade"
+    }
+  ]
+}
