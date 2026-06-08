@@ -8,7 +8,7 @@ import {
   FileText, Shield, MapPin, Camera, Search, User, LogIn, LogOut, CheckCircle2, 
   AlertTriangle, Clock, Map, ClipboardList, Send, Edit, Trash2, Settings, Plus,
   Sparkles, FileSpreadsheet, FileDown, ArrowRight, ArrowLeft, CornerDownRight, Check, X, 
-  HelpCircle, ShieldCheck, Heart, Navigation, Eye, UserCheck, Palette, Mail, Megaphone
+  HelpCircle, ShieldCheck, Heart, Navigation, Eye, UserCheck, Palette, Mail, Megaphone, RefreshCw
 } from "lucide-react";
 import { 
   Manifestacao, Secretaria, Usuario, UserPerfil, 
@@ -168,6 +168,50 @@ export default function App() {
   const [isExecutingBatch, setIsExecutingBatch] = useState(false);
   const [meusProtocolosFilter, setMeusProtocolosFilter] = useState("");
 
+  // Local user alternate proof email management
+  const [selfEmailAlternativo, setSelfEmailAlternativo] = useState("");
+  const [isSavingSelfEmail, setIsSavingSelfEmail] = useState(false);
+
+  useEffect(() => {
+    if (currentUser) {
+      setSelfEmailAlternativo(currentUser.emailAlternativo || "");
+    } else {
+      setSelfEmailAlternativo("");
+    }
+  }, [currentUser]);
+
+  const handleSaveSelfEmailAlternativo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!currentUser) return;
+    setIsSavingSelfEmail(true);
+    try {
+      const res = await fetch("/api/usuarios/self/email-alternativo", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: currentUser.email,
+          emailAlternativo: selfEmailAlternativo
+        })
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const updatedUser = {
+          ...currentUser,
+          emailAlternativo: data.emailAlternativo
+        };
+        setCurrentUser(updatedUser);
+        triggerToast("E-mail alternativo de prova atualizado com sucesso!");
+      } else {
+        const err = await res.json();
+        triggerToast(err.message || "Erro ao atualizar e-mail alternativo.", false);
+      }
+    } catch {
+      triggerToast("Erro de conexão ao salvar e-mail alternativo.", false);
+    } finally {
+      setIsSavingSelfEmail(false);
+    }
+  };
+
   // Mock File system attachments pictures options for citizens
   const presetPhotos = [
     { label: "Foto 1 (Asfalto Danificado)", url: "https://images.unsplash.com/photo-1515162305285-0293e4767cc2?auto=format&fit=crop&q=80&w=620" },
@@ -216,7 +260,7 @@ export default function App() {
       // Fetch users (If admin, it filters by createdBy accordingly)
       let urlU = `/api/usuarios`;
       if (currentUser) {
-        urlU += `?adminId=${encodeURIComponent(currentUser.id)}&perfilAdmin=${encodeURIComponent(currentUser.perfil)}`;
+        urlU += `?adminId=${encodeURIComponent(currentUser.id)}&perfilAdmin=${encodeURIComponent(currentUser.perfil)}&adminEmail=${encodeURIComponent(currentUser.email)}`;
       }
       const resU = await fetch(urlU);
       if (resU.ok) {
@@ -470,16 +514,34 @@ export default function App() {
   };
 
   // 6. Search dynamic timeline by protocol ID
-  const handleSearchProtocolo = (e: React.FormEvent) => {
+  const handleSearchProtocolo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchProtocolo) return;
     const cleanP = searchProtocolo.trim().toUpperCase();
-    const found = manifestacoes.find(m => m.protocolo.toUpperCase() === cleanP);
-    if (found) {
-      setSearchResult(found);
-    } else {
-      setSearchResult(null);
-      triggerToast("Protocolo não localizado na base parlamentar de Ouvidoria.", false);
+    
+    try {
+      const res = await fetch(`/api/manifestacoes/busca?protocolo=${encodeURIComponent(cleanP)}`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.manifestacao) {
+          setSearchResult(data.manifestacao);
+        } else {
+          setSearchResult(null);
+          triggerToast("Protocolo não localizado na base de Ouvidoria.", false);
+        }
+      } else {
+        const data = await res.json();
+        setSearchResult(null);
+        triggerToast(data.message || "Protocolo não localizado ou de acesso restrito.", false);
+      }
+    } catch {
+      const found = manifestacoes.find(m => m.protocolo.toUpperCase() === cleanP);
+      if (found) {
+        setSearchResult(found);
+      } else {
+        setSearchResult(null);
+        triggerToast("Erro de conexão ao buscar protocolo.", false);
+      }
     }
   };
 
@@ -1956,84 +2018,7 @@ export default function App() {
                   <span>Voltar ao Início</span>
                 </button>
 
-                {/* Meus chamados vinculados à sua conta (Cidadão Logado) */}
-                {currentUser && currentUser.perfil === UserPerfil.CITIZEN && (
-                  <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-md space-y-4">
-                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b pb-3 gap-2">
-                      <div>
-                        <h4 className="text-sm font-black text-[#0b2545] uppercase flex items-center gap-2">
-                          <ClipboardList className="w-4 h-4 text-emerald-600" />
-                          <span>Meus Protocolos Vinculados</span>
-                        </h4>
-                        <p className="text-[10px] text-slate-500 font-semibold mt-0.5">Sincronizados automaticamente com seu login ({currentUser.email})</p>
-                      </div>
 
-                      {/* Filter subset matching local input */}
-                      <div className="relative text-xs w-full sm:w-60">
-                        <input
-                          type="text"
-                          value={meusProtocolosFilter}
-                          onChange={(e) => setMeusProtocolosFilter(e.target.value)}
-                          placeholder="Filtrar por nº de protocolo..."
-                          className="w-full pl-8 pr-3 py-1.5 border rounded-lg bg-slate-50 font-semibold focus:outline-none focus:border-emerald-600"
-                        />
-                        <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-2.5" />
-                      </div>
-                    </div>
-
-                    {/* Protocols list */}
-                    {(() => {
-                      const citizenTickets = manifestacoes.filter(m => 
-                        (!meusProtocolosFilter.trim() || m.protocolo.toLowerCase().includes(meusProtocolosFilter.toLowerCase()))
-                      );
-
-                      if (citizenTickets.length === 0) {
-                        return (
-                          <div className="text-center py-6 text-xs text-slate-400">
-                            Nenhum protocolo verificado para os filtros aplicados.
-                          </div>
-                        );
-                      }
-
-                      return (
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-72 overflow-y-auto pr-1">
-                          {citizenTickets.map((t) => (
-                            <div 
-                              key={t.id}
-                              onClick={() => {
-                                setSearchResult(t);
-                                setSearchProtocolo(t.protocolo);
-                              }}
-                              className={`p-3.5 rounded-xl border transition-all text-xs text-left cursor-pointer flex flex-col justify-between gap-2.5 shadow-sm active:scale-[0.99] select-none hover:shadow-md ${
-                                searchResult?.id === t.id 
-                                  ? "bg-slate-50 border-emerald-600 ring-2 ring-emerald-500/25" 
-                                  : "bg-white hover:bg-slate-50/50 border-slate-200"
-                              }`}
-                            >
-                              <div className="flex items-center justify-between gap-1.5">
-                                <span className="font-mono font-black text-[#0b2545]">{t.protocolo}</span>
-                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase text-center border ${
-                                  t.status === "Respondido" 
-                                    ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
-                                    : "bg-amber-50 text-amber-700 border-amber-200"
-                                }`}>
-                                  {t.status}
-                                </span>
-                              </div>
-
-                              <p className="text-[11px] text-slate-650 font-medium line-clamp-1 italic">"{t.descricao}"</p>
-
-                              <div className="flex items-center justify-between text-[10px] text-slate-500 font-bold border-t border-slate-100 pt-1.5 mt-0.5">
-                                <span className="text-emerald-700">{t.categoria}</span>
-                                <span>{new Date(t.criadoEm).toLocaleDateString()}</span>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      );
-                    })()}
-                  </div>
-                )}
                 
                 <div className="bg-white border border-slate-200 rounded-xl p-6 shadow-md space-y-5">
                   <div className="text-center max-w-lg mx-auto space-y-1">
@@ -2409,8 +2394,61 @@ export default function App() {
                     <span className="inline-flex h-9 w-9 items-center justify-center bg-emerald-100 text-emerald-800 rounded-lg">
                       <Sparkles className="w-5 h-5" />
                     </span>
-                  </div>
                 </div>
+              </div>
+
+                {/* E-mail Alternativo de Prova (Atende Vereadores, Prefeito, Procurador, Admin) */}
+                {currentUser && currentUser.perfil !== UserPerfil.CITIZEN && (
+                  <div className="bg-gradient-to-r from-emerald-950 to-slate-900 border border-emerald-800 rounded-xl p-5 shadow-lg relative overflow-hidden" id="alternative-email-setup-box animate-fade-in">
+                    <div className="absolute right-0 top-0 opacity-10 pointer-events-none text-emerald-300">
+                      <Mail className="w-48 h-48 -mr-10 -mt-10" />
+                    </div>
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-5 relative z-10">
+                      <div className="max-w-xl space-y-1.5 text-slate-100 font-sans">
+                        <div className="flex items-center gap-2">
+                          <span className="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg">
+                            <Mail className="w-4.5 h-4.5" />
+                          </span>
+                          <h3 className="text-sm font-black uppercase tracking-wider text-white">E-mail Alternativo para Registro de Provas</h3>
+                        </div>
+                        <p className="text-xs text-slate-300 leading-relaxed">
+                          Vereadores, Prefeito, Procuradores e Administradores: configurem seu e-mail pessoal alternativo para que 
+                          <strong> todas as mensagens enviadas e recebidas pelo aplicativo </strong> gerem automaticamente uma cópia comprobatória (prova e evidência pública do trâmite).
+                        </p>
+                      </div>
+
+                      <form onSubmit={handleSaveSelfEmailAlternativo} className="flex flex-col sm:flex-row gap-2 w-full md:w-auto text-xs self-stretch md:self-auto justify-end">
+                        <div className="flex flex-col gap-1 w-full sm:w-64">
+                          <input
+                            type="email"
+                            required
+                            placeholder="gabinete.exemplo@camara.gov.br"
+                            value={selfEmailAlternativo}
+                            onChange={(e) => setSelfEmailAlternativo(e.target.value)}
+                            className="w-full px-3 py-2 bg-slate-800/80 border border-slate-700 text-slate-100 placeholder-slate-500 rounded-lg focus:outline-none focus:border-emerald-500 font-semibold"
+                          />
+                        </div>
+                        <button
+                          type="submit"
+                          disabled={isSavingSelfEmail}
+                          className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-lg shadow-md hover:shadow-lg transition cursor-pointer select-none active:scale-95 disabled:opacity-50 inline-flex items-center justify-center gap-1.5"
+                        >
+                          {isSavingSelfEmail ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              <span>Salvando...</span>
+                            </>
+                          ) : (
+                            <>
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Salvar E-mail de Prova</span>
+                            </>
+                          )}
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                )}
 
                 {/* Left controls sidebar with sub-panels */}
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">

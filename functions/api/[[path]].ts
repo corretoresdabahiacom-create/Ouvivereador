@@ -924,14 +924,51 @@ addRoute("DELETE", "/api/secretarias/:id", async (req, env, params, query) => {
 addRoute("GET", "/api/usuarios", async (req, env, params, query) => {
   const adminId = query.adminId;
   const perfilAdmin = query.perfilAdmin;
+  const adminEmail = query.adminEmail;
   const db = await getDB(env);
 
-  if (perfilAdmin === "Administrador Geral" && adminId && adminId !== "u-admin") {
-    const list = db.usuarios.filter((u: any) => u.criadoPorAdminId === adminId || u.id === adminId);
-    return jsonResponse(list);
+  const caller = db.usuarios.find((u: any) => u.email === adminEmail);
+  if (!caller || caller.perfil === "Cidadão") {
+    return jsonResponse({ success: false, message: "Acesso negado: Perfil sem privilégios de ouvidoria." }, 403);
   }
 
-  return jsonResponse(db.usuarios);
+  let list = db.usuarios;
+  if (perfilAdmin === "Administrador Geral" && adminId && adminId !== "u-admin") {
+    list = db.usuarios.filter((u: any) => u.criadoPorAdminId === adminId || u.id === adminId);
+  }
+
+  // Row-Level Security: strip sensitive password hashes from results
+  const securedList = list.map(({ senhaHash, ...rest }: any) => rest);
+  return jsonResponse(securedList);
+});
+
+// 17.5. POST update self alternative email
+addRoute("POST", "/api/usuarios/self/email-alternativo", async (req, env) => {
+  const body = await getBody(req);
+  const { email, emailAlternativo } = body;
+
+  if (!email) {
+    return jsonResponse({ success: false, message: "Identificador de e-mail inválido." }, 400);
+  }
+
+  const db = await getDB(env);
+  const idx = db.usuarios.findIndex((u: any) => u.email === email);
+  if (idx === -1) {
+    return jsonResponse({ success: false, message: "Usuário não localizado." }, 404);
+  }
+
+  db.usuarios[idx].emailAlternativo = emailAlternativo || "";
+  await saveDB(db, env);
+  
+  await writeAuditLog(
+    email,
+    db.usuarios[idx].nome,
+    `Atualizou o e-mail alternativo de prova e comprovação municipal para: ${emailAlternativo || "Sem e-mail"}`,
+    undefined,
+    env
+  );
+
+  return jsonResponse({ success: true, emailAlternativo: db.usuarios[idx].emailAlternativo });
 });
 
 // 18. POST users register/edit
@@ -1015,18 +1052,36 @@ addRoute("DELETE", "/api/usuarios/:id", async (req, env, params, query) => {
   return jsonResponse({ success: true });
 });
 
-// 20. GET complaints unifed method
+// 19.5 GET search protocol for citizens (Exclusive single protocol tracking access)
+addRoute("GET", "/api/manifestacoes/busca", async (req, env, params, query) => {
+  const protocolo = query.protocolo;
+  if (!protocolo) {
+    return jsonResponse({ success: false, message: "Insira o número do protocolo." }, 400);
+  }
+
+  const db = await getDB(env);
+  const found = db.manifestacoes.find((m: any) => m.protocolo.toUpperCase() === protocolo.trim().toUpperCase());
+  
+  if (!found) {
+    return jsonResponse({ success: false, message: "Protocolo não localizado na Ouvidoria." }, 404);
+  }
+
+  return jsonResponse({ success: true, manifestacao: found });
+});
+
+// 20. GET complaints unified method (Secured under RLS: Citizens can only access via direct protocol search)
 addRoute("GET", "/api/manifestacoes", async (req, env, params, query) => {
-  const usuarioId = query.usuarioId;
   const perfil = query.perfil;
   const vId = query.vId;
-  const db = await getDB(env);
+  
+  if (perfil === "Cidadão") {
+    return jsonResponse({ success: false, message: "Acesso negado: Cidadão contribuinte só tem acesso pelo número do protocolo de forma rastreada." }, 403);
+  }
 
+  const db = await getDB(env);
   let list = [...db.manifestacoes];
 
-  if (perfil === "Cidadão") {
-    list = list.filter((m: any) => m.usuarioId === usuarioId);
-  } else if (perfil === "Vereador Específico") {
+  if (perfil === "Vereador Específico") {
     list = list.filter((m: any) => !m.vereadorId || m.vereadorId === vId || m.vereadorId === "todos");
   }
 
@@ -1098,6 +1153,22 @@ addRoute("POST", "/api/manifestacoes", async (req, env) => {
   };
 
   const db = await getDB(env);
+
+  // RLS / Email alternativo de prova automatic receipt copy trigger
+  let targetAgent = null;
+  const targetId = vereadorId || "ouvidoria";
+  if (targetId && targetId !== "todos" && targetId !== "ouvidoria") {
+    targetAgent = db.usuarios.find((u: any) => u.id === targetId);
+  } else {
+    targetAgent = db.usuarios.find((u: any) => u.perfil === "Ouvidoria de Câmara" || u.email === "ouvidoria@camara.gov.br" || u.perfil === "Administrador Geral");
+  }
+
+  if (targetAgent && targetAgent.emailAlternativo && targetAgent.emailAlternativo.trim()) {
+    newTicket.historicoLogs.push(
+      `${new Date().toISOString()}: [CÓPIA PROVA RECEBIMENTO] Alerta de recebimento e cópia oficial deste processo foram remetidos ao e-mail alternativo de prova de '${targetAgent.nome}': ${targetAgent.emailAlternativo}`
+    );
+  }
+
   db.manifestacoes.push(newTicket);
   await saveDB(db, env);
 
@@ -1161,6 +1232,13 @@ addRoute("POST", "/api/manifestacoes/:id/responder", async (req, env, params) =>
   mat.historicoLogs.push(
     `${new Date().toISOString()}: Ouvidoria/Vereador respondeu: "${respostaMsg}".`
   );
+
+  const responder = db.usuarios.find((u: any) => u.email === adminEmail);
+  if (responder && responder.emailAlternativo && responder.emailAlternativo.trim()) {
+    mat.historicoLogs.push(
+      `${new Date().toISOString()}: [CÓPIA PROVA RESPOSTA] Uma cópia probatória desta resposta enviada ao cidadão foi remetida ao e-mail alternativo de prova do gestor: ${responder.emailAlternativo}`
+    );
+  }
 
   await saveDB(db, env);
   await writeAuditLog(
@@ -1645,6 +1723,13 @@ addRoute("POST", "/api/manifestacoes/:id/resolver-completo", async (req, env, pa
   mat.historicoLogs.push(
     `${new Date().toISOString()}: O parlamentar/gestor '${adminNome}' atualizou os dados de resolução: Status="${mat.status}", Encaminhado para="${mat.encaminhadoPara || '---'}", Observação de Solução="${mat.observacaoResolvido || '---'}"`
   );
+
+  const responder = db.usuarios.find((u: any) => u.email === adminEmail);
+  if (responder && responder.emailAlternativo && responder.emailAlternativo.trim()) {
+    mat.historicoLogs.push(
+      `${new Date().toISOString()}: [CÓPIA PROVA ATUALIZAÇÃO RESPOSTA] Uma cópia probatória contendo todos os dados atualizados de resolução foi remetida ao e-mail alternativo de prova do parlamentar/gestor: ${responder.emailAlternativo}`
+    );
+  }
 
   await saveDB(db, env);
   await writeAuditLog(

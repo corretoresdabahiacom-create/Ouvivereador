@@ -37,8 +37,8 @@ export default function Header({ config, onLogoClick }: HeaderProps) {
         )}
 
         <div className="text-center md:text-left">
-          <h1 className="text-xl font-black tracking-tight">{config.municipioNome || "Câmara de Vereadores"}</h1>
-          <p className="text-xs text-white/85 font-semibold flex items-center justify-center md:justify-start gap-1">
+          <h1 className="text-2xl md:text-3xl font-black tracking-tight">{config.municipioNome || "Câmara de Vereadores"}</h1>
+          <p className="text-sm text-white/85 font-semibold flex items-center justify-center md:justify-start gap-1">
             <span>{config.nomePrograma || "Ouvidoria Legislativa Inteligente"}</span>
           </p>
         </div>
